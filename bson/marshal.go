@@ -297,6 +297,8 @@ func encodeStruct(buf *bytes2.ChunkedWriter, key string, val reflect.Value) {
 	encodeStructContent(buf, val)
 }
 
+var nameCache = map[string]string{}
+
 func encodeStructContent(buf *bytes2.ChunkedWriter, val reflect.Value) {
 	lenWriter := NewLenWriter(buf)
 	t := val.Type()
@@ -304,7 +306,7 @@ func encodeStructContent(buf *bytes2.ChunkedWriter, val reflect.Value) {
 		f := t.Field(i)
 		key := f.Name
 		altName := f.Tag.Get("bson")
-		if altName != "" {
+		if len(altName) > 0 {
 			key = altName
 		}
 

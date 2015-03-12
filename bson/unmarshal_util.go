@@ -26,8 +26,10 @@ func VerifyObject(kind byte) {
 // DecodeString decodes a string from buf.
 // Allowed types: String, Binary, Null,
 func DecodeString(buf *bytes.Buffer, kind byte) string {
+	//fmt.Println(kind)
 	switch kind {
-	case String:
+
+	case 2:
 		l := int(Pack.Uint32(Next(buf, 4)))
 		s := Next(buf, l-1)
 		NextByte(buf)
@@ -282,7 +284,7 @@ func DecodeStringArray(buf *bytes.Buffer, kind byte) []string {
 	result := make([]string, 0, 8)
 	Next(buf, 4)
 	for kind := NextByte(buf); kind != EOO; kind = NextByte(buf) {
-		if kind != Binary {
+		if kind != String && kind != Binary {
 			panic(NewBsonError("unexpected kind %v for string", kind))
 		}
 		SkipIndex(buf)

@@ -17,6 +17,7 @@ import (
 const (
 	bsonValNil     = "\nVal\x00"
 	bsonValBytes   = "\x05Val\x00\x04\x00\x00\x00\x00test"
+	bsonValString  = "\x02Val\x00\x05\x00\x00\x00test\x00"
 	bsonValInt64   = "\x12Val\x00\x01\x00\x00\x00\x00\x00\x00\x00"
 	bsonValInt32   = "\x10Val\x00\x01\x00\x00\x00"
 	bsonValUint64  = "?Val\x00\x01\x00\x00\x00\x00\x00\x00\x00"
@@ -33,7 +34,7 @@ var interfaceMarshalCases = []struct {
 	out  string
 }{
 	{"nil", nil, bsonValNil},
-	{"string", "test", bsonValBytes},
+	{"string", "test", bsonValString},
 	{"[]byte", []byte("test"), bsonValBytes},
 	{"int64", int64(1), bsonValInt64},
 	{"int32", int32(1), bsonValInt32},

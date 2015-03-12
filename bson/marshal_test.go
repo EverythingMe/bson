@@ -5,7 +5,6 @@
 package bson
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -61,7 +60,7 @@ var marshaltest = []struct {
 }, {
 	"embedded slice encode",
 	struct{ Inner []string }{[]string{"test1", "test2"}},
-	"+\x00\x00\x00\x04Inner\x00\x1f\x00\x00\x00\x050\x00\x05\x00\x00\x00\x00test1\x051\x00\x05\x00\x00\x00\x00test2\x00\x00",
+	"+\x00\x00\x00\x04Inner\x00\x1f\x00\x00\x00\x020\x00\x06\x00\x00\x00test1\x00\x021\x00\x06\x00\x00\x00test2\x00\x00\x00",
 }, {
 	"embedded slice encode nil",
 	struct{ Inner []string }{},
@@ -69,11 +68,11 @@ var marshaltest = []struct {
 }, {
 	"array encode",
 	[2]string{"test1", "test2"},
-	"\x1f\x00\x00\x00\x050\x00\x05\x00\x00\x00\x00test1\x051\x00\x05\x00\x00\x00\x00test2\x00",
+	"\x1f\x00\x00\x00\x020\x00\x06\x00\x00\x00test1\x00\x021\x00\x06\x00\x00\x00test2\x00\x00",
 }, {
 	"string encode",
 	"test",
-	"\x15\x00\x00\x00\x05_Val_\x00\x04\x00\x00\x00\x00test\x00",
+	"\x15\x00\x00\x00\x02_Val_\x00\x05\x00\x00\x00test\x00\x00",
 }, {
 	"bytes encode",
 	[]byte("test"),
@@ -120,7 +119,7 @@ var marshaltest = []struct {
 	// the decode tests.
 	"embedded Object encode",
 	struct{ Val struct{ Val2 string } }{struct{ Val2 string }{"test"}},
-	"\x1e\x00\x00\x00\x03Val\x00\x14\x00\x00\x00\x05Val2\x00\x04\x00\x00\x00\x00test\x00\x00",
+	"\x1e\x00\x00\x00\x03Val\x00\x14\x00\x00\x00\x02Val2\x00\x05\x00\x00\x00test\x00\x00\x00",
 }, {
 	"embedded Object encode nil element",
 	struct{ Val struct{ Val2 *int64 } }{struct{ Val2 *int64 }{nil}},
@@ -128,7 +127,7 @@ var marshaltest = []struct {
 }, {
 	"embedded Array encode",
 	struct{ Val []string }{Val: []string{"test"}},
-	"\x1b\x00\x00\x00\x04Val\x00\x11\x00\x00\x00\x050\x00\x04\x00\x00\x00\x00test\x00\x00",
+	"\x1b\x00\x00\x00\x04Val\x00\x11\x00\x00\x00\x020\x00\x05\x00\x00\x00test\x00\x00\x00",
 }, {
 	"Array encode nil element",
 	struct{ Val []*int64 }{Val: []*int64{nil, newint64(1)}},
@@ -140,7 +139,7 @@ var marshaltest = []struct {
 }, {
 	"embedded Binary encode",
 	struct{ Val string }{"test"},
-	"\x13\x00\x00\x00\x05Val\x00\x04\x00\x00\x00\x00test\x00",
+	"\x13\x00\x00\x00\x02Val\x00\x05\x00\x00\x00test\x00\x00",
 }, {
 	"embedded Boolean encode",
 	struct{ Val bool }{true},
@@ -168,11 +167,11 @@ var marshaltest = []struct {
 }, {
 	"embedded non-pointer encode with custom marshaler",
 	struct{ Val String1 }{String1("foo")},
-	"\x13\x00\x00\x00\x05Val\x00\x04\x00\x00\x00\x00test\x00",
+	"\x13\x00\x00\x00\x02Val\x00\x05\x00\x00\x00test\x00\x00",
 }, {
 	"embedded pointer encode with custom marshaler",
 	struct{ Val *String1 }{func(cs String1) *String1 { return &cs }(String1("foo"))},
-	"\x13\x00\x00\x00\x05Val\x00\x04\x00\x00\x00\x00test\x00",
+	"\x13\x00\x00\x00\x02Val\x00\x05\x00\x00\x00test\x00\x00",
 }, {
 	"embedded nil pointer encode with custom marshaler",
 	struct{ Val *String1 }{},
@@ -180,19 +179,19 @@ var marshaltest = []struct {
 }, {
 	"embedded pointer encode with custom pointer marshaler",
 	struct{ Val *String2 }{func(cs String2) *String2 { return &cs }(String2("foo"))},
-	"\x13\x00\x00\x00\x05Val\x00\x04\x00\x00\x00\x00test\x00",
+	"\x13\x00\x00\x00\x02Val\x00\x05\x00\x00\x00test\x00\x00",
 }, {
 	"embedded addressable encode with custom pointer marshaler",
 	&struct{ Val String2 }{String2("foo")},
-	"\x13\x00\x00\x00\x05Val\x00\x04\x00\x00\x00\x00test\x00",
+	"\x13\x00\x00\x00\x02Val\x00\x05\x00\x00\x00test\x00\x00",
 }, {
 	"embedded non-addressable encode with custom pointer marshaler",
 	struct{ Val String2 }{String2("foo")},
-	"\x12\x00\x00\x00\x05Val\x00\x03\x00\x00\x00\x00foo\x00",
+	"\x12\x00\x00\x00\x02Val\x00\x04\x00\x00\x00foo\x00\x00",
 }}
 
 func TestMarshal(t *testing.T) {
-	t.SkipNow()
+
 	for _, tcase := range marshaltest {
 		got := verifyMarshal(t, tcase.in)
 		if string(got) != tcase.out {
@@ -241,6 +240,11 @@ type Foo struct {
 	Baz int    `bson:"z"`
 }
 
+type FooNoTags struct {
+	Bar string
+	Baz int
+}
+
 func TestStructTags(t *testing.T) {
 
 	foo := Foo{
@@ -267,5 +271,5 @@ func TestStructTags(t *testing.T) {
 	if foo2 != foo {
 		t.Errorf("Unmatching decoded object: got %s, want %s", foo2, foo)
 	}
-	fmt.Println(foo2)
+
 }

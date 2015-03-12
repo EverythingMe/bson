@@ -3,6 +3,10 @@
 // license that can be found in the LICENSE file.
 
 // Package bson implements encoding and decoding of BSON objects.
+//
+// It is a fork in the form of an isolated library, of the BSON library found inside Vitess.
+// It includes a couple of minor tweaks, but it's mostly just an extraction of the library into a disconnected
+// code base, so it could be more easily vendored and imported.
 package bson
 
 import (

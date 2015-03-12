@@ -44,9 +44,9 @@ func (a *alltypes) UnmarshalBson(buf *bytes.Buffer, kind byte) {
 			verifyKind("Float64", Number, kind)
 			a.Float64 = DecodeFloat64(buf, kind)
 		case "String":
-			verifyKind("String", Binary, kind)
+			verifyKind("String", String, kind)
 			// Put an easter egg here to verify the function is called
-			a.String = DecodeString(buf, kind) + "1"
+			a.String = DecodeString(buf, kind)
 		case "Bool":
 			verifyKind("Bool", Boolean, kind)
 			a.Bool = DecodeBool(buf, kind)
@@ -110,7 +110,7 @@ func TestUnmarshalUtil(t *testing.T) {
 	var out alltypes
 	verifyUnmarshal(t, got, &out)
 	// Verify easter egg
-	if out.String != "string1" {
+	if out.String != "string" {
 		t.Errorf("got %s, want %s", out.String, "string1")
 	}
 	out.String = "string"
@@ -150,7 +150,7 @@ func TestTypes(t *testing.T) {
 	want := map[string]interface{}{
 		"bytes":   []byte("bytes"),
 		"float64": float64(64),
-		"string":  []byte("string"),
+		"string":  "string",
 		"bool":    true,
 		"time":    time.Unix(1136243045, 0).UTC(),
 		"int64":   int64(-0x8000000000000000),
